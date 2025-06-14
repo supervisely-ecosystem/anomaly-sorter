@@ -35,7 +35,7 @@ class RunNode(SolutionElement):
             title="Run Custom Filters",
             tooltip=self._create_tooltip(),
             width=250,
-            tooltip_position="right",
+            tooltip_position="left",
         )
 
     def _create_tooltip(self):

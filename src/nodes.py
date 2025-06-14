@@ -18,8 +18,8 @@ input_project = sly.solution.ProjectNode(
 )
 stats_node = Statictics(
     api=g.api,
-    x=1050,
-    y=307,
+    x=700,
+    y=650,
     project_id=g.project.id,
 )
 
@@ -48,23 +48,18 @@ graph_builder.add_node(navigate)
 # * Add edges between nodes
 graph_builder.add_edge(input_project, filters_node)
 graph_builder.add_edge(
-    stats_node,
-    class_selector,
-    start_sockert="left",
-    end_socket="right",
-    dash=True,
-    end_plug="disc",
-)
-graph_builder.add_edge(
     class_selector,
     input_project,
     start_sockert="left",
     end_socket="right",
     dash=True,
-    end_plug="disc",
+    end_plug="behind",
+    start_plug="arrow2",
     point_anchor={"x": "100%", "y": "50%"},
 )
+graph_builder.add_edge(class_selector, stats_node, dash=True)
 graph_builder.add_edge(filters_node, run_node)
+graph_builder.add_edge(stats_node, run_node, start_sockert="left", end_socket="right", dash=True)
 graph_builder.add_edge(run_node, navigate)
 
 
