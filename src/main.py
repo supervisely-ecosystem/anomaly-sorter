@@ -28,11 +28,20 @@ def on_run_node_click():
     This function is called when the RunNode card is clicked.
     It retrieves the filters from the CustomFilters node and runs the filters on the images in the project.
     """
+    n.run_node.hide_is_finished_badge()
+    n.run_node.show_in_progress_badge()
     g.collection_id = n.run_node.run(filters=n.filters_node.filters, stats=n.stats_node.stats)
+    if g.collection_id is None:
+        msg = "No images found after applying filters. Please adjust your filters and try again."
+        sly.app.show_dialog(title="Warning", message=msg, status="warning")
+        n.run_node.hide_in_progress_badge()
+        return
     sly.logger.info("Filters applied successfully.")
     link = n.run_node.prepare_link(project_id=g.project.id, collection_id=g.collection_id)
     sly.logger.info(f"Link to filtered images: {link}")
     n.navigate.card.link = link
+    n.run_node.hide_in_progress_badge()
+    n.run_node.show_is_finished_badge()
 
 
 # * Tag accepted anomalies

@@ -71,10 +71,6 @@ class AcceptAnomaliesNode(BaseElement):
             button_type="text",
         )
 
-        @btn.click
-        def on_run_click():
-            self.run()
-
         return btn
 
     def run(self, collection_id: Optional[int] = None) -> None:
