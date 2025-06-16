@@ -1,5 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple
-
+from src.components.base_element import BaseElement
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import (
@@ -13,10 +12,10 @@ from supervisely.app.widgets import (
 )
 from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
-from supervisely.solution.base_node import SolutionCardNode, SolutionElement
+from supervisely.solution.base_node import SolutionCardNode
 
 
-class ClassSelector(SolutionElement):
+class ClassSelector(BaseElement):
     """
     This class represents a card that allows users to select a class for filtering images.
     """

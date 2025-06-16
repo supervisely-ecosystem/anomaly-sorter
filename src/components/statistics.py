@@ -6,11 +6,15 @@ from typing import Callable, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 
-import supervisely as sly
+from supervisely._utils import get_or_create_event_loop
+from supervisely.annotation.annotation import Annotation
+from supervisely.annotation.label import Label
+from supervisely.annotation.tag_meta import TagApplicableTo, TagMeta, TagValueType
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import Button, SlyTqdm, SolutionCard
 from supervisely.collection.str_enum import StrEnum
+from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
 from supervisely.solution.base_node import Automation, SolutionCardNode, SolutionElement
 from supervisely.task.progress import tqdm_sly
@@ -25,11 +29,8 @@ class DefaultImgTags(StrEnum):
     MAX_INTENSITY_DIFF = "_max_intensity_diff"
 
 
-class DefaultObjTags(StrEnum):
-    INTENSITY_DIFF = "_intensity_diff"
-
-
-# AUTOMATION_INTERVAL = 60  # Default automation interval in seconds
+# class DefaultObjTags(StrEnum):
+#     INTENSITY_DIFF = "_intensity_diff"
 
 
 class StatisticsAuto(Automation):
@@ -142,13 +143,18 @@ class Statictics(SolutionElement):
         logger.info(f"Selected class for statistics calculation: {self.selected_class}")
 
     def run(self):
-        if self.selected_class is None:
-            raise ValueError("No class selected for statistics calculation.")
+        self.hide_is_finished_badge()
+        self.show_in_progress_badge()
+        if not self.selected_class:
+            logger.warning("Class is not selected for statistics calculation.")
+            return
         if self.in_progress:
             logger.debug("Statistics calculation is already in progress.")
             return
         self.in_progress = True
         self.calculate_statistics(self.selected_class)
+        self.hide_in_progress_badge()
+        self.show_is_finished_badge()
         self.in_progress = False
 
     def get_updates_state(self) -> Dict:
@@ -211,7 +217,7 @@ class Statictics(SolutionElement):
                     continue
                 img_tags_to_delete = defaultdict(set)
 
-                for batch in self.api.image.get_list_generator(dataset.id, batch_size=20):
+                for batch in self.api.image.get_list_generator(dataset.id, batch_size=50):
                     img_infos = []
                     for img_info in batch:
                         if self._recently_updated(
@@ -228,16 +234,16 @@ class Statictics(SolutionElement):
                         continue
 
                     img_ids = [img_info.id for img_info in img_infos]
-                    loop = sly.utils.get_or_create_event_loop()
+                    loop = get_or_create_event_loop()
                     img_np = loop.run_until_complete(self.api.image.download_nps_async(img_ids))
                     anns = self.api.annotation.download_json_batch(dataset.id, img_ids)
-                    anns = [sly.Annotation.from_json(ann, meta) for ann in anns]
+                    anns = [Annotation.from_json(ann, meta) for ann in anns]
 
                     for img, ann, info in zip(img_np, anns, img_infos):
                         exists = info.id in img_idx_map
                         img_stats = self._calculate_image_statistics(img, ann, target_class)
                         DataJson()[self.widget_id]["image_ids"].append(info.id)
-                        DataJson().send_changes()
+                        # DataJson().send_changes()
                         now = datetime.now(timezone.utc)
                         last_updated_map[info.id] = now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -261,12 +267,13 @@ class Statictics(SolutionElement):
 
                             if not exists:
                                 DataJson()[self.widget_id][key].append(value)
-                                DataJson().send_changes()
+                                # DataJson().send_changes()
                             elif need_add:
                                 DataJson()[self.widget_id][key][img_idx_map[info.id]] = value
-                                DataJson().send_changes()
+                                # DataJson().send_changes()
                         if not exists:
                             img_idx_map[info.id] = len(img_idx_map)
+                    DataJson().send_changes()
                     pbar.update(len(img_infos))
                 if len(img_tags_to_delete) > 0:
                     logger.info(
@@ -317,7 +324,7 @@ class Statictics(SolutionElement):
         return curr_dt > state_dt
 
     def _calculate_image_statistics(
-        self, img: np.array, ann: sly.Annotation, target_class: str
+        self, img: np.array, ann: Annotation, target_class: str
     ) -> dict:
         """
         Calculate statistics for a single image.
@@ -327,38 +334,37 @@ class Statictics(SolutionElement):
         :param target_class: The class for which to calculate statistics.
         :return: A dictionary containing the statistics for the image.
         """
-        areas = []
+        target_labels = [l for l in ann.labels if l.obj_class.name == target_class]
+        if not target_labels:
+            logger.warning(f"No labels found for class '{target_class}' in the image.")
+            return {
+                DefaultImgTags.NUMBER_OF_LABELS.value: 0,
+                DefaultImgTags.MAX_AREA.value: 0,
+                DefaultImgTags.TOTAL_AREA.value: 0,
+                DefaultImgTags.AVG_INTENSITY_DIFF.value: 0.0,
+                DefaultImgTags.MAX_INTENSITY_DIFF.value: 0.0,
+                DefaultImgTags.MIN_INTENSITY_DIFF.value: 0.0,
+            }
 
-        intensity_diffs = []
-        for label in ann.labels:
-            if label.obj_class.name != target_class:
-                continue
-            areas.append(label.geometry.area)
-            intensity_diff = self._calculate_intensity_diff(img, label)
-            intensity_diffs.append(intensity_diff)
-
-        if intensity_diffs:
-            avg_intensity_diff = np.mean(intensity_diffs)
-            max_intensity_diff = np.max(intensity_diffs)
-            min_intensity_diff = np.min(intensity_diffs)
-        else:
-            avg_intensity_diff = 0.0
-            max_intensity_diff = 0.0
-            min_intensity_diff = 0.0
-
-        labels_count = len(ann.labels)
-        max_area = np.max(areas) if areas else 0
+        areas = np.array([label.geometry.area for label in target_labels])
+        intensity_diffs = np.array([self._calculate_intensity_diff(img, l) for l in target_labels])
 
         return {
-            DefaultImgTags.NUMBER_OF_LABELS.value: labels_count,
-            DefaultImgTags.MAX_AREA.value: max_area,
-            DefaultImgTags.TOTAL_AREA.value: np.sum(areas) if areas else 0,
-            DefaultImgTags.AVG_INTENSITY_DIFF.value: avg_intensity_diff,
-            DefaultImgTags.MAX_INTENSITY_DIFF.value: max_intensity_diff,
-            DefaultImgTags.MIN_INTENSITY_DIFF.value: min_intensity_diff,
+            DefaultImgTags.NUMBER_OF_LABELS.value: len(target_labels),
+            DefaultImgTags.MAX_AREA.value: np.max(areas) if areas.size > 0 else 0,
+            DefaultImgTags.TOTAL_AREA.value: np.sum(areas) if areas.size > 0 else 0,
+            DefaultImgTags.AVG_INTENSITY_DIFF.value: (
+                np.mean(intensity_diffs) if intensity_diffs.size > 0 else 0.0
+            ),
+            DefaultImgTags.MAX_INTENSITY_DIFF.value: (
+                np.max(intensity_diffs) if intensity_diffs.size > 0 else 0.0
+            ),
+            DefaultImgTags.MIN_INTENSITY_DIFF.value: (
+                np.min(intensity_diffs) if intensity_diffs.size > 0 else 0.0
+            ),
         }
 
-    def _calculate_intensity_diff(self, img: np.array, label: sly.Label) -> float:
+    def _calculate_intensity_diff(self, img: np.array, label: Label) -> float:
         """
         Computes intensity difference between mask and its 1-pixel outer border (neighbors).
         """
@@ -373,26 +379,29 @@ class Statictics(SolutionElement):
         outer_border = cv2.dilate(mask.astype(np.uint8), kernel, iterations=1) - mask.astype(
             np.uint8
         )
-
         # Calculate the average intensity in the mask and its outer border
-        mask_intensity = img[mask].mean() if np.any(mask) else 0.0
-        border_intensity = img[outer_border > 0].mean() if np.any(outer_border) else 0.0
+        if img.ndim == 3:
+            mask_intensity = np.mean(img[mask]) if np.any(mask) else 0.0
+            border_intensity = np.mean(img[outer_border > 0]) if np.any(outer_border) else 0.0
+        else:
+            mask_intensity = img[mask].mean() if np.any(mask) else 0.0
+            border_intensity = img[outer_border > 0].mean() if np.any(outer_border) else 0.0
 
         return abs(mask_intensity - border_intensity)
 
-    def _validate_project_meta(self) -> sly.ProjectMeta:
+    def _validate_project_meta(self) -> ProjectMeta:
         """
         Check if the project meta has the required tags and upload them if not.
         """
-        meta = sly.ProjectMeta.from_json(self.api.project.get_meta(self.project_id))
+        meta = ProjectMeta.from_json(self.api.project.get_meta(self.project_id))
         need_updated = False
         for tag_name in DefaultImgTags.values():
             tag_name = str(tag_name)
             if not meta.tag_metas.has_key(tag_name):
-                tag_meta = sly.TagMeta(
+                tag_meta = TagMeta(
                     tag_name,
-                    sly.TagValueType.ANY_NUMBER,
-                    applicable_to=sly.TagApplicableTo.IMAGES_ONLY,
+                    TagValueType.ANY_NUMBER,
+                    applicable_to=TagApplicableTo.IMAGES_ONLY,
                 )
                 meta = meta.add_tag_meta(tag_meta)
                 need_updated = True
@@ -406,5 +415,35 @@ class Statictics(SolutionElement):
     def apply_automation(self, sec: Optional[int] = None) -> None:
         """Apply the automation function to the MoveLabeled node."""
         self.automation.apply(sec)
-        self.node.show_automation_badge()
+        # self.node.show_automation_badge()
         self.card.update_property("Check for updates every", f"{sec} sec", highlight=True)
+
+    def show_in_progress_badge(self) -> None:
+        self.update_in_progress_badge(True)
+
+    def hide_in_progress_badge(self) -> None:
+        self.update_in_progress_badge(False)
+
+    def update_in_progress_badge(self, enable: bool) -> None:
+        if enable:
+            self.card.update_badge_by_key(
+                key="In Progress", label="⚡", plain=True, badge_type="warning"
+            )
+        else:
+            self.card.remove_badge_by_key("In Progress")
+
+    def show_is_finished_badge(self) -> None:
+        self.update_is_finished_badge(True)
+
+    def hide_is_finished_badge(self) -> None:
+        self.update_is_finished_badge(False)
+
+    def update_is_finished_badge(self, enable: bool) -> None:
+        if enable:
+            self.card.update_badge_by_key(
+                key="Finished",
+                label="✅",
+                plain=True,
+            )
+        else:
+            self.card.remove_badge_by_key("In Progress")

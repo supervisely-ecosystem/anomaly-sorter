@@ -2,14 +2,15 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
+from src.components.base_element import BaseElement
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import SolutionCard
 from supervisely.sly_logger import logger
-from supervisely.solution.base_node import SolutionCardNode, SolutionElement
+from supervisely.solution.base_node import SolutionCardNode
 
 
-class RunNode(SolutionElement):
+class RunNode(BaseElement):
     """
     This class represents a node in the solution graph that allows users to run custom filters on images.
     """
@@ -32,9 +33,9 @@ class RunNode(SolutionElement):
 
     def _create_card(self):
         return SolutionCard(
-            title="Run Custom Filters",
+            title="Apply",
             tooltip=self._create_tooltip(),
-            width=250,
+            width=150,
             tooltip_position="left",
         )
 
@@ -104,12 +105,13 @@ class RunNode(SolutionElement):
         if not isinstance(stats, dict):
             logger.error("Statistics should be a dictionary.")
             return set()
+        logger.info(f"Applying filters: {filters}")
         min_area = filters.get("min_area", 0)
-        max_area = filters.get("max_area", float("inf"))
+        # max_area = filters.get("max_area", float("inf"))
         min_num_objects = filters.get("min_num_labels", 0)
         max_num_objects = filters.get("max_num_labels", float("inf"))
-        min_intensity_diff = filters.get("min_intensity_diff", 0)
-        max_intensity_diff = filters.get("max_intensity_diff", float("inf"))
+        # min_intensity_diff = filters.get("min_intensity_diff", 0)
+        # max_intensity_diff = filters.get("max_intensity_diff", float("inf"))
 
         sort_by = filters.get("sort_by")
 
@@ -118,11 +120,13 @@ class RunNode(SolutionElement):
         total_area = np.asarray(stats.get("_total_area", []))
         num_labels = np.asarray(stats.get("_labels", []))
         avg_intensity_diff = np.asarray(stats.get("_avg_intensity_diff", []))
+        min_intensity_diff = np.asarray(stats.get("_min_intensity_diff", []))
+        max_intensity_diff = np.asarray(stats.get("_max_intensity_diff", []))
 
         sets = []
 
-        if min_area > 0 or max_area < float("inf"):
-            area_filter = (total_area >= min_area) & (total_area <= max_area)
+        if min_area > 0:  # or max_area < float("inf"):
+            area_filter = max_area_stats >= min_area  # & (max_area_stats <= max_area)
             if np.any(area_filter):
                 area_indices = np.where(area_filter)[0]
                 sets.append(set(area_indices))
@@ -130,22 +134,30 @@ class RunNode(SolutionElement):
             sets.append(set(np.arange(len(image_ids))))
 
         if min_num_objects > 0 or max_num_objects < float("inf"):
-            num_labels_filter = (num_labels >= min_num_objects) & (num_labels <= max_num_objects)
+            if min_num_objects < max_num_objects:
+                num_labels_filter = (num_labels >= min_num_objects) & (
+                    num_labels <= max_num_objects
+                )
+            else:
+                num_labels_filter = (num_labels >= min_num_objects) | (
+                    num_labels <= max_num_objects
+                )
             if np.any(num_labels_filter):
                 num_labels_indices = np.where(num_labels_filter)[0]
                 sets.append(set(num_labels_indices))
+
         else:
             sets.append(set(np.arange(len(image_ids))))
 
-        if min_intensity_diff > 0 or max_intensity_diff < float("inf"):
-            intensity_diff_filter = (avg_intensity_diff >= min_intensity_diff) & (
-                avg_intensity_diff <= max_intensity_diff
-            )
-            if np.any(intensity_diff_filter):
-                intensity_diff_indices = np.where(intensity_diff_filter)[0]
-                sets.append(set(intensity_diff_indices))
-        else:
-            sets.append(set(np.arange(len(image_ids))))
+        # if min_intensity_diff > 0 or max_intensity_diff < float("inf"):
+        #     intensity_diff_filter = (avg_intensity_diff >= min_intensity_diff) & (
+        #         avg_intensity_diff <= max_intensity_diff
+        #     )
+        #     if np.any(intensity_diff_filter):
+        #         intensity_diff_indices = np.where(intensity_diff_filter)[0]
+        #         sets.append(set(intensity_diff_indices))
+        # else:
+        #     sets.append(set(np.arange(len(image_ids))))
 
         if not sets:
             logger.warning("No images found after applying filters.")
@@ -158,10 +170,16 @@ class RunNode(SolutionElement):
 
         if sort_by == "_labels":
             sorted_indices = np.argsort(num_labels[list(intersections)])
+        elif sort_by == "_max_area":
+            sorted_indices = np.argsort(max_area_stats[list(intersections)])
         elif sort_by == "_total_area":
             sorted_indices = np.argsort(total_area[list(intersections)])
         elif sort_by == "_avg_intensity_diff":
             sorted_indices = np.argsort(avg_intensity_diff[list(intersections)])
+        elif sort_by == "_min_intensity_diff":
+            sorted_indices = np.argsort(min_intensity_diff[list(intersections)])
+        elif sort_by == "_max_intensity_diff":
+            sorted_indices = np.argsort(max_intensity_diff[list(intersections)])
         else:
             sorted_indices = np.arange(len(intersections))
 

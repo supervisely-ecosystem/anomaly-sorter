@@ -1,5 +1,6 @@
 from typing import Callable, Dict, List, Optional, Tuple
 
+from src.components.base_element import BaseElement
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import (
     Button,
@@ -16,10 +17,10 @@ from supervisely.app.widgets import (
     Widget,
 )
 from supervisely.sly_logger import logger
-from supervisely.solution.base_node import SolutionCardNode, SolutionElement
+from supervisely.solution.base_node import SolutionCardNode
 
 
-class CustomFilters(SolutionElement):
+class CustomFilters(BaseElement):
     """
     This class is a placeholder for the custom filters functionality.
     """
@@ -78,12 +79,12 @@ class CustomFilters(SolutionElement):
         """
 
         # filter by number of labels
-        min_num_label = Text("Min Number of Labels:", font_size=13)
+        min_num_label = Text("Number of Labels greater than:", font_size=13)
         self.min_num_check = Checkbox(min_num_label)
         self.min_num_input = InputNumber(min=0, step=1, size="mini", controls=False, width=100)
         self.min_num_input.disable()
 
-        max_num_label = Text("Max Number of Labels:", font_size=13)
+        max_num_label = Text("Number of Labels less than:", font_size=13)
         self.max_num_check = Checkbox(max_num_label)
         self.max_num_input = InputNumber(min=0, step=1, size="mini", controls=False, width=100)
         self.max_num_input.disable()
@@ -108,7 +109,7 @@ class CustomFilters(SolutionElement):
 
         @self.min_num_check.value_changed
         def on_min_num_check_change(is_checked: bool):
-            self._update_sort_options()
+            # self._update_sort_options()
             if is_checked:
                 self.min_num_input.enable()
             else:
@@ -116,22 +117,22 @@ class CustomFilters(SolutionElement):
 
         @self.max_num_check.value_changed
         def on_max_num_check_change(is_checked: bool):
-            self._update_sort_options()
+            # self._update_sort_options()
             if is_checked:
                 self.max_num_input.enable()
             else:
                 self.max_num_input.disable()
 
         # filter by area (e.g. total area on image should be greater than some value)
-        min_area_label = Text("Min Area (px):", font_size=13)
+        min_area_label = Text("Has Labels with Area greater than:", font_size=13)
         self.min_area_check = Checkbox(min_area_label)
         self.min_area_input = InputNumber(min=0, step=1, size="mini", controls=False, width=100)
         self.min_area_input.disable()
 
-        max_area_label = Text("Max Area (px):", font_size=13)
-        self.max_area_check = Checkbox(max_area_label)
-        self.max_area_input = InputNumber(min=0, step=1, size="mini", controls=False, width=100)
-        self.max_area_input.disable()
+        # max_area_label = Text("Max Area (px):", font_size=13)
+        # self.max_area_check = Checkbox(max_area_label)
+        # self.max_area_input = InputNumber(min=0, step=1, size="mini", controls=False, width=100)
+        # self.max_area_input.disable()
 
         min_area_box = Flexbox(
             widgets=[
@@ -141,85 +142,85 @@ class CustomFilters(SolutionElement):
             ],
             vertical_alignment="center",
         )
-        max_area_box = Flexbox(
-            widgets=[
-                Empty(style="width: 20px"),
-                self.max_area_check,
-                self.max_area_input,
-            ],
-            vertical_alignment="center",
-        )
+        # max_area_box = Flexbox(
+        #     widgets=[
+        #         Empty(style="width: 20px"),
+        #         self.max_area_check,
+        #         self.max_area_input,
+        #     ],
+        #     vertical_alignment="center",
+        # )
         area_field = Field(
-            Container([min_area_box, max_area_box]),
+            Container([min_area_box]),
             "Filter by Area",
         )
 
         @self.min_area_check.value_changed
         def on_min_area_check_change(is_checked: bool):
-            self._update_sort_options()
+            # self._update_sort_options()
             if is_checked:
                 self.min_area_input.enable()
             else:
                 self.min_area_input.disable()
 
-        @self.max_area_check.value_changed
-        def on_max_area_check_change(is_checked: bool):
-            self._update_sort_options()
-            if is_checked:
-                self.max_area_input.enable()
-            else:
-                self.max_area_input.disable()
+        # @self.max_area_check.value_changed
+        # def on_max_area_check_change(is_checked: bool):
+        #     self._update_sort_options()
+        #     if is_checked:
+        #         self.max_area_input.enable()
+        #     else:
+        #         self.max_area_input.disable()
 
         # filter by average intensity difference
-        min_intensity_diff_label = Text("Average Intensity Difference greater than:", font_size=13)
-        self.min_intensity_diff_check = Checkbox(min_intensity_diff_label)
-        self.min_intensity_diff_input = InputNumber(
-            min=0, step=1, size="mini", controls=False, width=100
-        )
-        self.min_intensity_diff_input.disable()
+        # min_intensity_diff_label = Text("Average Intensity Difference greater than:", font_size=13)
+        # self.min_intensity_diff_check = Checkbox(min_intensity_diff_label)
+        # self.min_intensity_diff_input = InputNumber(
+        #     min=0, step=1, size="mini", controls=False, width=100
+        # )
+        # self.min_intensity_diff_input.disable()
 
-        max_intensity_diff_label = Text("Average Intensity Difference less than:", font_size=13)
-        self.max_intensity_diff_check = Checkbox(max_intensity_diff_label)
-        self.max_intensity_diff_input = InputNumber(
-            min=0, step=1, size="mini", controls=False, width=100
-        )
-        self.max_intensity_diff_input.disable()
-        min_intensity_diff_box = Flexbox(
-            widgets=[
-                Empty(style="width: 20px"),
-                self.min_intensity_diff_check,
-                self.min_intensity_diff_input,
-            ],
-            vertical_alignment="center",
-        )
-        max_intensity_diff_box = Flexbox(
-            widgets=[
-                Empty(style="width: 20px"),
-                self.max_intensity_diff_check,
-                self.max_intensity_diff_input,
-            ],
-            vertical_alignment="center",
-        )
-        avg_intensity_diff_field = Field(
-            Container([min_intensity_diff_box, max_intensity_diff_box]),
-            "Filter by Average Intensity Difference",
-        )
+        # max_intensity_diff_label = Text("Average Intensity Difference less than:", font_size=13)
+        # self.max_intensity_diff_check = Checkbox(max_intensity_diff_label)
+        # self.max_intensity_diff_input = InputNumber(
+        #     min=0, step=1, size="mini", controls=False, width=100
+        # )
+        # self.max_intensity_diff_input.disable()
+        # min_intensity_diff_box = Flexbox(
+        #     widgets=[
+        #         Empty(style="width: 20px"),
+        #         self.min_intensity_diff_check,
+        #         self.min_intensity_diff_input,
+        #     ],
+        #     vertical_alignment="center",
+        # )
+        # max_intensity_diff_box = Flexbox(
+        #     widgets=[
+        #         Empty(style="width: 20px"),
+        #         self.max_intensity_diff_check,
+        #         self.max_intensity_diff_input,
+        #     ],
+        #     vertical_alignment="center",
+        # )
+        # avg_intensity_diff_field = Field(
+        #     Container([min_intensity_diff_box, max_intensity_diff_box]),
+        #     "Filter by Average Intensity Difference",
+        # )
 
-        @self.min_intensity_diff_check.value_changed
-        def on_avg_intensity_diff_check_change(is_checked: bool):
-            self._update_sort_options()
-            if is_checked:
-                self.min_intensity_diff_input.enable()
-            else:
-                self.min_intensity_diff_input.disable()
+        # @self.min_intensity_diff_check.value_changed
+        # def on_avg_intensity_diff_check_change(is_checked: bool):
+        #     self._update_sort_options()
+        #     if is_checked:
+        #         self.min_intensity_diff_input.enable()
+        #     else:
+        #         self.min_intensity_diff_input.disable()
 
-        @self.max_intensity_diff_check.value_changed
-        def on_max_intensity_diff_check_change(is_checked: bool):
-            self._update_sort_options()
-            if is_checked:
-                self.max_intensity_diff_input.enable()
-            else:
-                self.max_intensity_diff_input.disable()
+        # @self.max_intensity_diff_check.value_changed
+        # def on_max_intensity_diff_check_change(is_checked: bool):
+        #     self._update_sort_options()
+        #     if is_checked:
+        #         self.max_intensity_diff_input.enable()
+        #     else:
+        #         self.max_intensity_diff_input.disable()
 
         # # sort options:
         self.sort_by_label = Text("Sort by:", font_size=13)
@@ -232,7 +233,7 @@ class CustomFilters(SolutionElement):
                 self.sort_by_label,
                 self.sort_by,
             ],
-            vertical_alignment="center",
+            vertical_alignment="start",
         )
 
         # # sort order
@@ -257,14 +258,14 @@ class CustomFilters(SolutionElement):
             "Sort Options",
         )
 
-        self.apply_button = Button("Apply Filters")
+        self.apply_button = Button("Save", icon="zmdi zmdi-check")
         apply_button_box = Container([self.apply_button], style="align-items: flex-end")
 
         content = Container(
             [
                 num_lbls_field,
                 area_field,
-                avg_intensity_diff_field,
+                # avg_intensity_diff_field,
                 self.sort_options_field,
                 apply_button_box,
             ],
@@ -286,16 +287,25 @@ class CustomFilters(SolutionElement):
     def _create_sort_options(
         self,
         num_labels: bool = False,
-        area: bool = False,
+        total_area: bool = False,
+        max_area: bool = False,
         avg_intensity_diff: bool = False,
+        max_intensity_diff: bool = False,
+        min_intensity_diff: bool = False,
     ) -> List[RadioGroup.Item]:
         items = []
         if num_labels:
             items.append(RadioGroup.Item("_labels", "Number of Labels"))
-        if area:
-            items.append(RadioGroup.Item("_total_area", "Area"))
+        if total_area:
+            items.append(RadioGroup.Item("_total_area", "Total area"))
+        if max_area:
+            items.append(RadioGroup.Item("_max_area", "Maximum Area"))
         if avg_intensity_diff:
             items.append(RadioGroup.Item("_avg_intensity_diff", "Average Intensity Difference"))
+        if max_intensity_diff:
+            items.append(RadioGroup.Item("_max_intensity_diff", "Maximum Intensity Difference"))
+        if min_intensity_diff:
+            items.append(RadioGroup.Item("_min_intensity_diff", "Minimum Intensity Difference"))
         return items
 
     def _update_sort_options(self) -> None:
@@ -306,11 +316,11 @@ class CustomFilters(SolutionElement):
         self.sort_by.set(
             self._create_sort_options(
                 num_labels=True,
-                area=self.min_area_check.is_checked() or self.max_area_check.is_checked(),
-                avg_intensity_diff=(
-                    self.min_intensity_diff_check.is_checked()
-                    or self.max_intensity_diff_check.is_checked()
-                ),
+                total_area=True,
+                max_area=True,
+                avg_intensity_diff=True,
+                max_intensity_diff=True,
+                min_intensity_diff=True,
             )
         )
 
@@ -337,12 +347,12 @@ class CustomFilters(SolutionElement):
             filters["max_num_labels"] = self.max_num_input.get_value()
         if self.min_area_check.is_checked():
             filters["min_area"] = self.min_area_input.get_value()
-        if self.max_area_check.is_checked():
-            filters["max_area"] = self.max_area_input.get_value()
-        if self.min_intensity_diff_check.is_checked():
-            filters["min_intensity_diff"] = self.min_intensity_diff_input.get_value()
-        if self.max_intensity_diff_check.is_checked():
-            filters["max_intensity_diff"] = self.max_intensity_diff_input.get_value()
+        # if self.max_area_check.is_checked():
+        #     filters["max_area"] = self.max_area_input.get_value()
+        # if self.min_intensity_diff_check.is_checked():
+        #     filters["min_intensity_diff"] = self.min_intensity_diff_input.get_value()
+        # if self.max_intensity_diff_check.is_checked():
+        #     filters["max_intensity_diff"] = self.max_intensity_diff_input.get_value()
         if self.sort_by.get_value() is not None:
             filters["sort_by"] = self.sort_by.get_value()
         # if self.sort_order.get_value() is not None:
