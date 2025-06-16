@@ -10,6 +10,7 @@ from supervisely.app.widgets import (
     Empty,
     Field,
     Flexbox,
+    Icons,
     InputNumber,
     RadioGroup,
     SolutionCard,
@@ -58,6 +59,11 @@ class CustomFilters(BaseElement):
             tooltip=self._create_tooltip(),
             width=250,
             tooltip_position="left",
+            icon=Icons(
+                class_name="zmdi zmdi-filter-list",
+                color="#2196F3",
+                bg_color="#E3F2FD",
+            ),
         )
 
     def _create_tooltip(self):

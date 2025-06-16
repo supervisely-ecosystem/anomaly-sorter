@@ -6,6 +6,7 @@ from supervisely.app.widgets import (
     ClassesListSelector,
     Container,
     Dialog,
+    Icons,
     SolutionCard,
     Text,
     Widget,
@@ -57,6 +58,11 @@ class ClassSelector(BaseElement):
             tooltip=self._create_tooltip(),
             width=250,
             tooltip_position="right",
+            icon=Icons(
+                class_name="zmdi zmdi-layers",
+                color="#2196F3",
+                bg_color="#E3F2FD",
+            ),
         )
 
     def _create_tooltip(self):

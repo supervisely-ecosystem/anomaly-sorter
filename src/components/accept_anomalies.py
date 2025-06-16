@@ -7,7 +7,7 @@ from supervisely.api.api import Api
 from supervisely.api.image_api import ImageInfo
 from supervisely.api.module_api import ApiField
 from supervisely.app.exceptions import show_dialog
-from supervisely.app.widgets import Button, SolutionCard
+from supervisely.app.widgets import Button, Icons, SolutionCard
 from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
 from supervisely.solution.base_node import SolutionCardNode
@@ -46,13 +46,16 @@ class AcceptAnomaliesNode(BaseElement):
             tooltip=self._create_tooltip(),
             width=250,
             tooltip_position="right",
+            icon=Icons(
+                class_name="zmdi zmdi-check-all",
+                color="#4CAF50",
+                bg_color="#E8F5E9",
+            ),
         )
 
     def _create_tooltip(self):
         return SolutionCard.Tooltip(
-            description=f"""Node that automates the tagging of accepted anomalies in a collection of images.
-            Users review images sorted by specified metrics and manually tag 'start' and 'end' images to mark the boundaries of accepted anomalies.
-            This node detects these boundaries based on user tags and tags all images within the boundaries, helping to efficiently identify and accept true anomalies while excluding false positives.""",
+            description=f"Automates the tagging of accepted anomalies using user-defined start image and end image of the sorted anomaly set.",
             content=[self.run_btn],
         )
 

@@ -33,6 +33,10 @@ navigate = sly.solution.LinkNode(
     title="Navigate to Filtered Images",
     description="Click to navigate to the filtered images in the project.",
     link=sly.utils.abs_url(f"/app/images2/?projectId={g.project_id}"),
+    tooltip_position="left",
+    icon=sly.app.widgets.Icons(
+        class_name="zmdi zmdi-open-in-new", color="#2196F3", bg_color="#E3F2FD"
+    ),
 )
 accept_node = AcceptAnomaliesNode(
     api=g.api,

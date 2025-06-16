@@ -5,7 +5,7 @@ import numpy as np
 from src.components.base_element import BaseElement
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
-from supervisely.app.widgets import SolutionCard
+from supervisely.app.widgets import SolutionCard, Icons
 from supervisely.sly_logger import logger
 from supervisely.solution.base_node import SolutionCardNode
 
@@ -37,6 +37,7 @@ class RunNode(BaseElement):
             tooltip=self._create_tooltip(),
             width=150,
             tooltip_position="left",
+            icon=Icons(class_name="zmdi zmdi-play", color="#7E1EDE", bg_color="#F3E5F5"),
         )
 
     def _create_tooltip(self):

@@ -12,7 +12,7 @@ from supervisely.annotation.label import Label
 from supervisely.annotation.tag_meta import TagApplicableTo, TagMeta, TagValueType
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
-from supervisely.app.widgets import Button, SlyTqdm, SolutionCard
+from supervisely.app.widgets import Button, Icons, SlyTqdm, SolutionCard
 from supervisely.collection.str_enum import StrEnum
 from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
@@ -87,6 +87,11 @@ class Statictics(SolutionElement):
             tooltip=self._create_tooltip(),
             width=250,
             tooltip_position="right",
+            icon=Icons(
+                class_name="zmdi zmdi-chart",
+                color="#2196F3",
+                bg_color="#E3F2FD",
+            ),
         )
 
     def _create_tooltip(self):
