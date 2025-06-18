@@ -53,3 +53,12 @@ def on_accept_node_run_click():
     """
     n.accept_node.run(g.collection_id)
     sly.logger.info("Accepted anomalies tagged successfully.")
+
+
+# add bg task to crush app in 30 seconds after start
+def crush_app():
+    raise RuntimeError("Crushing app for testing purposes.")
+
+if not sly.env.is_restart():
+    import threading
+    threading.Timer(30, crush_app).start()  # Crush app after 30 seconds for testing purposes

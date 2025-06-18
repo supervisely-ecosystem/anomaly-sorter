@@ -1,3 +1,3 @@
-git+https://github.com/supervisely/supervisely.git@solution-wip-2
+git+https://github.com/supervisely/supervisely.git@autorestart
 apscheduler==3.11.0
 black==25.1.0
