@@ -1,4 +1,11 @@
 import random
+import os
+
+is_restart = random.choice([True, False])
+if is_restart:
+    os.environ["modal.state.isRestart"] = "true"
+else:
+    os.environ["modal.state.isRestart"] = "false"
 import src.nodes as n
 import src.sly_globals as g
 import supervisely as sly
