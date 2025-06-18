@@ -24,12 +24,12 @@ class RunNode(BaseElement):
         *args,
         **kwargs,
     ):
+        super().__init__(*args, **kwargs)
         self.api = api
         self.project_id = project_id
         self.card = self._create_card()
         self.node = SolutionCardNode(content=self.card, x=x, y=y)
 
-        super().__init__(*args, **kwargs)
 
     def _create_card(self):
         return SolutionCard(

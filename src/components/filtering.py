@@ -33,6 +33,7 @@ class CustomFilters(BaseElement):
         *args,
         **kwargs,
     ):
+        super().__init__(*args, **kwargs)
         self.card = self._create_card()
         self.node = SolutionCardNode(content=self.card, x=x, y=y)
         self.modals = [self.modal]
@@ -41,7 +42,6 @@ class CustomFilters(BaseElement):
         def on_card_click():
             self.modal.show()
 
-        super().__init__(*args, **kwargs)
 
     @property
     def modal(self) -> Dialog:

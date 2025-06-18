@@ -30,6 +30,7 @@ class ClassSelector(BaseElement):
         *args,
         **kwargs,
     ):
+        super().__init__(*args, **kwargs)
         self.api = api
         self.project_id = project_id
         self.card = self._create_card()
@@ -40,7 +41,6 @@ class ClassSelector(BaseElement):
         def on_card_click():
             self.modal.show()
 
-        super().__init__(*args, **kwargs)
         self.save()
 
     @property

@@ -66,6 +66,7 @@ class Statictics(SolutionElement):
         *args,
         **kwargs,
     ):
+        super().__init__(*args, **kwargs)
         self.api = api
         self.project_id = project_id
         self.dataset_id = dataset_id
@@ -81,7 +82,6 @@ class Statictics(SolutionElement):
         def on_run_click():
             self.run()
 
-        super().__init__(*args, **kwargs)
 
     def _create_card(self):
         return SolutionCard(
