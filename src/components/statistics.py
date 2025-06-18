@@ -62,11 +62,13 @@ class Statictics(SolutionElement):
         project_id: int,
         x: int = 0,
         y: int = 0,
+        dataset_id: Optional[int] = None,
         *args,
         **kwargs,
     ):
         self.api = api
         self.project_id = project_id
+        self.dataset_id = dataset_id
 
         self.card = self._create_card()
         self.automation = StatisticsAuto(self.run)
@@ -95,8 +97,10 @@ class Statictics(SolutionElement):
         )
 
     def _create_tooltip(self):
+        description = "This node calculates statistics for the"
+        description += " project." if self.dataset_id is None else " dataset."
         return SolutionCard.Tooltip(
-            description="This node calculates statistics for the project.",
+            description=description,
             content=[
                 # self.automation_btn,
                 self.run_btn,
@@ -177,7 +181,7 @@ class Statictics(SolutionElement):
     @property
     def stats(self) -> Dict:
         """
-        Get the statistics for the project from DataJson.
+        Get the statistics for the project/dataset from DataJson.
         If statistics are not present, initialize them.
         """
         res = {}
@@ -190,7 +194,7 @@ class Statictics(SolutionElement):
 
     def calculate_statistics(self, target_class: str) -> dict:
         """
-        Calculate statistics for the given target class in the project.
+        Calculate statistics for the given target class in the project/dataset.
 
         :param target_class: The class for which to calculate statistics.
         :return: A dictionary containing the statistics.
@@ -198,7 +202,14 @@ class Statictics(SolutionElement):
         img_tags_to_upload = []
         project_info = self.api.project.get_info_by_id(self.project_id)
         meta = self._validate_project_meta()
-        datasets = self.api.dataset.get_list(self.project_id, recursive=True)
+        if self.dataset_id is not None:
+            datasets = [self.api.dataset.get_info_by_id(self.dataset_id)]
+            if datasets[0].project_id != self.project_id:
+                raise ValueError(
+                    f"Dataset {self.dataset_id} does not belong to project {self.project_id}."
+                )
+        else:
+            datasets = self.api.dataset.get_list(self.project_id, recursive=True)
 
         last_updated_map = self.get_updates_state()
         img_idx_map = self.get_img_idx_map()
@@ -210,7 +221,8 @@ class Statictics(SolutionElement):
         if "image_ids" not in DataJson()[self.widget_id]:
             DataJson()[self.widget_id]["image_ids"] = []
             DataJson().send_changes()
-        with self.pbar(total=project_info.images_count, message=f"Processing...") as pbar:
+        total = project_info.images_count if self.dataset_id is None else datasets[0].images_count
+        with self.pbar(total=total, message=f"Processing...") as pbar:
             for dataset in datasets:
                 ds_updated_at_state = last_updated_map.get(dataset.id)
                 if not self._recently_updated(dataset.updated_at, ds_updated_at_state):
@@ -304,9 +316,7 @@ class Statictics(SolutionElement):
             pass
 
         if img_tags_to_upload:
-            logger.info(
-                f"Uploading {len(img_tags_to_upload)} tags to images in project {self.project_id}."
-            )
+            logger.info(f"Uploading {len(img_tags_to_upload)} tags to images.")
             self.api.image.tag.add_to_entities_json(
                 self.project_id, img_tags_to_upload, log_progress=True
             )

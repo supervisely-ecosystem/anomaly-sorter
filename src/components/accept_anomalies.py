@@ -101,11 +101,13 @@ class AcceptAnomaliesNode(BaseElement):
 
         start, end = None, None
         remove_tags = defaultdict(list)
+        boundary_images = defaultdict(list)
         for idx, img in enumerate(sorted_images):
             img: ImageInfo
             if self._has_tag(img, tag_accepted):
                 remove_tags[img.dataset_id].append(img.id)
             if self._has_tag(img, tag_boundary):
+                boundary_images[img.dataset_id].append(img.id)
                 if start is None:
                     start = idx
                     logger.info(f"Start image set: {img.name} (ID: {img.id})")
@@ -120,11 +122,23 @@ class AcceptAnomaliesNode(BaseElement):
                 self.api.advanced.remove_tags_from_images([tag_accepted.sly_id], img_ids, p.update)
 
         tags_json = []
+        success = False
         if start is not None and end is not None:
+            for _, img_ids in boundary_images.items():
+                self.api.advanced.remove_tags_from_images([tag_boundary.sly_id], img_ids)
+
             logger.info(f"Tagging images from index {start} to {end} as accepted anomalies.")
             for i in range(start, end + 1):
                 img = sorted_images[i]
                 tags_json.append({"tagId": tag_accepted.sly_id, "entityId": img.id})
+            success = True
+        else:
+            logger.warning("No start and end images found for tagging accepted anomalies.")
+            show_dialog(
+                title="Warning",
+                description="No start and end images found for tagging accepted anomalies.",
+                status="warning",
+            )
 
         if tags_json:
             self.api.image.tag.add_to_entities_json(self.project_id, tags_json, log_progress=True)
@@ -133,8 +147,9 @@ class AcceptAnomaliesNode(BaseElement):
             logger.info("No images to tag as accepted anomalies.")
 
         self.hide_in_progress_badge()
-        self.show_is_finished_badge()
-        logger.info("AcceptAnomaliesNode run completed successfully.")
+        if success:
+            self.show_is_finished_badge()
+            logger.info("AcceptAnomaliesNode run completed successfully.")
 
     def _has_tag(self, img: ImageInfo, tag_meta: TagMeta) -> bool:
         return any(tag["tagId"] == tag_meta.sly_id for tag in img.tags)

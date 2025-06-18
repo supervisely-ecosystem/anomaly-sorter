@@ -42,12 +42,12 @@ class RunNode(BaseElement):
 
     def _create_tooltip(self):
         return SolutionCard.Tooltip(
-            description="Apply custom filters to images in the project. All images will be processed, and the results will added to a new Entities Collection in the project.",
+            description="Apply custom filters to images. All images will be processed, and the results will added to a new Entities Collection in the project.",
         )
 
     def run(self, filters: Dict, stats: Dict) -> None:
         """
-        Runs the custom filters on the images in the project.
+        Runs the custom filters on the images in the project/dataset.
 
         :param filters: A dictionary containing the filters to be applied.
         :param stats: A dictionary containing statistics for the filters.

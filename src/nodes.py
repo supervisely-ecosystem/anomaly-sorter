@@ -13,8 +13,9 @@ input_project = sly.solution.ProjectNode(
     x=400,
     y=250,
     project_id=g.project.id,
-    title="Input Project",
+    title="Input Project" if g.dataset_id is None else "Input Dataset",
     description="Centralizes all incoming data. Data in this project will not be modified.",
+    dataset_id=g.dataset_id,
     widget_id="input_project_widget",
 )
 stats_node = Statictics(
@@ -22,6 +23,7 @@ stats_node = Statictics(
     x=700,
     y=650,
     project_id=g.project.id,
+    dataset_id=g.dataset_id,
 )
 
 filters_node = CustomFilters(x=365, y=500)
@@ -38,12 +40,7 @@ navigate = sly.solution.LinkNode(
         class_name="zmdi zmdi-open-in-new", color="#2196F3", bg_color="#E3F2FD"
     ),
 )
-accept_node = AcceptAnomaliesNode(
-    api=g.api,
-    project_id=g.project.id,
-    x=700,
-    y=800,
-)
+accept_node = AcceptAnomaliesNode(api=g.api, project_id=g.project.id, x=700, y=800)
 
 # * Create a SolutionGraphBuilder instance
 graph_builder = sly.solution.SolutionGraphBuilder(height="2000px")
@@ -67,7 +64,6 @@ graph_builder.add_edge(
     dash=True,
     end_plug="behind",
     start_plug="arrow2",
-    point_anchor={"x": "100%", "y": "50%"},
 )
 graph_builder.add_edge(class_selector, stats_node, dash=True)
 graph_builder.add_edge(filters_node, run_node)
