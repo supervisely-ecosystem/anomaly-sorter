@@ -71,8 +71,7 @@ def on_accept_node_run_click():
 def crush_app():
     raise RuntimeError("Crushing app for testing purposes.")
 
-if not sly.env.is_restart():
-    crush_app()
+crush_app()
 
 # if not sly.env.is_restart():
 #     import threading
