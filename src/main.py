@@ -1,9 +1,21 @@
+import random
 import src.nodes as n
 import src.sly_globals as g
 import supervisely as sly
+from supervisely.app.content import DataJson
 
 app = sly.Application(layout=n.layout)
 # app.call_before_shutdown(g.scheduler.shutdown)  # ? it seems like this is not working
+
+
+if "rand_str" in DataJson():
+    print(f"🔴 existing rand_str: {DataJson()['rand_str']}")
+
+
+rand_str = str(random.randint(1000, 9999))
+print(f"🔵 new rand_str: {rand_str}")
+data = DataJson()["rand_str"] = rand_str
+DataJson().send_changes()
 
 
 @n.class_selector.apply_button.click
@@ -60,5 +72,8 @@ def crush_app():
     raise RuntimeError("Crushing app for testing purposes.")
 
 if not sly.env.is_restart():
-    import threading
-    threading.Timer(30, crush_app).start()  # Crush app after 30 seconds for testing purposes
+    crush_app()
+
+# if not sly.env.is_restart():
+#     import threading
+#     threading.Timer(30, crush_app).start()  # Crush app after 30 seconds for testing purposes
