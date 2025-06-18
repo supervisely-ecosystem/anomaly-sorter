@@ -1,7 +1,3 @@
-import random
-import os
-
-os.environ["modal.state.isRestart"] = "true"
 import src.nodes as n
 import src.sly_globals as g
 import supervisely as sly
@@ -9,16 +5,6 @@ from supervisely.app.content import DataJson
 
 app = sly.Application(layout=n.layout)
 # app.call_before_shutdown(g.scheduler.shutdown)  # ? it seems like this is not working
-
-
-if "rand_str" in DataJson():
-    print(f"🔴 existing rand_str: {DataJson()['rand_str']}")
-
-
-rand_str = str(random.randint(1000, 9999))
-print(f"🔵 new rand_str: {rand_str}")
-data = DataJson()["rand_str"] = rand_str
-DataJson().send_changes()
 
 
 @n.class_selector.apply_button.click
@@ -68,14 +54,3 @@ def on_accept_node_run_click():
     """
     n.accept_node.run(g.collection_id)
     sly.logger.info("Accepted anomalies tagged successfully.")
-
-
-# add bg task to crush app in 30 seconds after start
-def crush_app():
-    raise RuntimeError("Crushing app for testing purposes.")
-
-crush_app()
-
-# if not sly.env.is_restart():
-#     import threading
-#     threading.Timer(30, crush_app).start()  # Crush app after 30 seconds for testing purposes
