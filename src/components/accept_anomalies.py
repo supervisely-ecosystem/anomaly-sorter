@@ -1,13 +1,21 @@
 from collections import defaultdict
 from typing import Optional
 
-from src.components.base_element import BaseElement
+from src.components.base_element import BaseActionElement
 from supervisely.annotation.tag_meta import TagApplicableTo, TagMeta, TagValueType
 from supervisely.api.api import Api
 from supervisely.api.image_api import ImageInfo
 from supervisely.api.module_api import ApiField
 from supervisely.app.exceptions import show_dialog
-from supervisely.app.widgets import Button, Icons, SolutionCard
+from supervisely.app.widgets import (
+    Button,
+    Container,
+    Dialog,
+    Field,
+    Icons,
+    RadioGroup,
+    SolutionCard,
+)
 from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
 from supervisely.solution.base_node import SolutionCardNode
@@ -17,7 +25,7 @@ TAG_ACCEPTED = "_accepted"
 TAG_ACCEPTED_BOUNDARY = "_accepted_boundary"
 
 
-class AcceptAnomaliesNode(BaseElement):
+class AcceptAnomaliesNode(BaseActionElement):
     """
     This class represents a node in the solution graph that allows users to accept anomalies by tagging images in a collection.
     It automates the tagging of accepted anomalies based on user-defined boundaries.
@@ -38,7 +46,36 @@ class AcceptAnomaliesNode(BaseElement):
         self._validate_project_meta()
         self.card = self._create_card()
         self.node = SolutionCardNode(content=self.card, x=x, y=y)
+        self.modals = [self.modal]
 
+        @self.card.click
+        def on_card_click():
+            self.modal.show()
+
+    @property
+    def modal(self) -> Dialog:
+        if not hasattr(self, "_modal"):
+            self._modal = self._create_modal()
+        return self._modal
+
+    def _create_modal(self):
+        return Dialog(title="Accept Anomalies", content=self._create_modal_content(), size="tiny")
+
+    def _create_modal_content(self):
+        self.mode = RadioGroup(
+            items=[
+                RadioGroup.Item(value="keep", label="Keep Previous Tags"),
+                RadioGroup.Item(value="rewrite", label="Rewrite Previous Tags"),
+            ],
+            direction="vertical",
+        )
+        field = Field(
+            title="Tagging Mode",
+            description="Choose how to handle existing 'accepted' tags:",
+            content=self.mode,
+        )
+        btn_container = Container([self.run_btn], style="align-items: flex-end")
+        return Container([field, btn_container])
 
     def _create_card(self):
         return SolutionCard(
@@ -56,7 +93,7 @@ class AcceptAnomaliesNode(BaseElement):
     def _create_tooltip(self):
         return SolutionCard.Tooltip(
             description=f"Automates the tagging of accepted anomalies using user-defined start image and end image of the sorted anomaly set.",
-            content=[self.run_btn],
+            # content=[self.run_btn],
         )
 
     @property
@@ -104,7 +141,7 @@ class AcceptAnomaliesNode(BaseElement):
         boundary_images = defaultdict(list)
         for idx, img in enumerate(sorted_images):
             img: ImageInfo
-            if self._has_tag(img, tag_accepted):
+            if self.tagging_mode == "rewrite" and self._has_tag(img, tag_accepted):
                 remove_tags[img.dataset_id].append(img.id)
             if self._has_tag(img, tag_boundary):
                 boundary_images[img.dataset_id].append(img.id)
@@ -175,3 +212,10 @@ class AcceptAnomaliesNode(BaseElement):
             logger.info("Project meta updated with new tags.")
 
         return meta
+
+    @property
+    def tagging_mode(self) -> str:
+        """
+        Returns the selected tagging mode.
+        """
+        return self.mode.get_value()

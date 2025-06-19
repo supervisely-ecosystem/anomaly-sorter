@@ -6,17 +6,19 @@ from typing import Callable, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 
+from src.components.base_element import BaseActionElement
 from supervisely._utils import get_or_create_event_loop
 from supervisely.annotation.annotation import Annotation
 from supervisely.annotation.label import Label
 from supervisely.annotation.tag_meta import TagApplicableTo, TagMeta, TagValueType
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
+from supervisely.app.exceptions import show_dialog
 from supervisely.app.widgets import Button, Icons, SlyTqdm, SolutionCard
 from supervisely.collection.str_enum import StrEnum
 from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
-from supervisely.solution.base_node import Automation, SolutionCardNode, SolutionElement
+from supervisely.solution.base_node import Automation, SolutionCardNode
 from supervisely.task.progress import tqdm_sly
 
 
@@ -50,7 +52,7 @@ class StatisticsAuto(Automation):
             )
 
 
-class Statictics(SolutionElement):
+class Statictics(BaseActionElement):
     """
     This class is a placeholder for the Statistics node.
     It is used to calculate statistics for the project.
@@ -70,6 +72,7 @@ class Statictics(SolutionElement):
         self.api = api
         self.project_id = project_id
         self.dataset_id = dataset_id
+        self._on_stats_calculated_callback = None
 
         self.card = self._create_card()
         self.automation = StatisticsAuto(self.run)
@@ -81,7 +84,6 @@ class Statictics(SolutionElement):
         @self.run_btn.click
         def on_run_click():
             self.run()
-
 
     def _create_card(self):
         return SolutionCard(
@@ -97,8 +99,9 @@ class Statictics(SolutionElement):
         )
 
     def _create_tooltip(self):
-        description = "This node calculates statistics for the"
-        description += " project." if self.dataset_id is None else " dataset."
+        description = "Calculate statistics for the "
+        description += " project" if self.dataset_id is None else " dataset"
+        description += " based on the selected class. After calculation you can use the results to filter images."
         return SolutionCard.Tooltip(
             description=description,
             content=[
@@ -154,17 +157,23 @@ class Statictics(SolutionElement):
     def run(self):
         self.hide_is_finished_badge()
         self.show_in_progress_badge()
+        self.run_btn.disable()
         if not self.selected_class:
-            logger.warning("Class is not selected for statistics calculation.")
+            msg = "Class is not selected for statistics calculation."
+            logger.warning(msg)
+            show_dialog(title="Warning", description=msg, status="warning")
+            self.run_btn.enable()
             return
         if self.in_progress:
             logger.debug("Statistics calculation is already in progress.")
             return
         self.in_progress = True
         self.calculate_statistics(self.selected_class)
+        self._trigger_stats_calculated()  # Trigger the callback after calculation
         self.hide_in_progress_badge()
         self.show_is_finished_badge()
         self.in_progress = False
+        self.run_btn.enable()
 
     def get_updates_state(self) -> Dict:
         if "last_updates" not in DataJson()[self.widget_id]:
@@ -222,6 +231,7 @@ class Statictics(SolutionElement):
             DataJson()[self.widget_id]["image_ids"] = []
             DataJson().send_changes()
         total = project_info.images_count if self.dataset_id is None else datasets[0].images_count
+        self.pbar.show()
         with self.pbar(total=total, message=f"Processing...") as pbar:
             for dataset in datasets:
                 ds_updated_at_state = last_updated_map.get(dataset.id)
@@ -251,8 +261,9 @@ class Statictics(SolutionElement):
                         continue
 
                     img_ids = [img_info.id for img_info in img_infos]
-                    loop = get_or_create_event_loop()
-                    img_np = loop.run_until_complete(self.api.image.download_nps_async(img_ids))
+                    # loop = get_or_create_event_loop()
+                    # img_np = loop.run_until_complete(self.api.image.download_nps_async(img_ids))
+                    img_np = self.api.image.download_nps(dataset_id=dataset.id, ids=img_ids)
                     anns = self.api.annotation.download_json_batch(dataset.id, img_ids)
                     anns = [Annotation.from_json(ann, meta) for ann in anns]
 
@@ -309,11 +320,7 @@ class Statictics(SolutionElement):
                 last_updated_map[dataset.id] = datetime.now(timezone.utc).strftime(
                     "%Y-%m-%dT%H:%M:%S.%fZ"
                 )
-
-        try:
-            self.pbar.close()
-        except Exception:
-            pass
+        self.pbar.hide()
 
         if img_tags_to_upload:
             logger.info(f"Uploading {len(img_tags_to_upload)} tags to images.")
@@ -433,32 +440,17 @@ class Statictics(SolutionElement):
         # self.node.show_automation_badge()
         self.card.update_property("Check for updates every", f"{sec} sec", highlight=True)
 
-    def show_in_progress_badge(self) -> None:
-        self.update_in_progress_badge(True)
+    def on_stats_calculated(self, func: Callable) -> Callable:
+        """
+        Decorator to register a callback function that will be called when statistics calculation is finished.
+        Usage:
+            @instance.on_stats_calculated
+            def my_callback():
+                ...
+        """
+        self._on_stats_calculated_callback = func
+        return func
 
-    def hide_in_progress_badge(self) -> None:
-        self.update_in_progress_badge(False)
-
-    def update_in_progress_badge(self, enable: bool) -> None:
-        if enable:
-            self.card.update_badge_by_key(
-                key="In Progress", label="⚡", plain=True, badge_type="warning"
-            )
-        else:
-            self.card.remove_badge_by_key("In Progress")
-
-    def show_is_finished_badge(self) -> None:
-        self.update_is_finished_badge(True)
-
-    def hide_is_finished_badge(self) -> None:
-        self.update_is_finished_badge(False)
-
-    def update_is_finished_badge(self, enable: bool) -> None:
-        if enable:
-            self.card.update_badge_by_key(
-                key="Finished",
-                label="✅",
-                plain=True,
-            )
-        else:
-            self.card.remove_badge_by_key("Finished")
+    def _trigger_stats_calculated(self):
+        if callable(self._on_stats_calculated_callback):
+            self._on_stats_calculated_callback()

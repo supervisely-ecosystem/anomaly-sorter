@@ -1,4 +1,4 @@
-from src.components.base_element import BaseElement
+from src.components.base_element import BaseActionElement
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import (
@@ -13,10 +13,10 @@ from supervisely.app.widgets import (
 )
 from supervisely.project.project_meta import ProjectMeta
 from supervisely.sly_logger import logger
-from supervisely.solution.base_node import SolutionCardNode
+from supervisely.solution.base_node import SolutionCardNode, SolutionElement
 
 
-class ClassSelector(BaseElement):
+class ClassSelector(SolutionElement):
     """
     This class represents a card that allows users to select a class for filtering images.
     """
@@ -41,7 +41,7 @@ class ClassSelector(BaseElement):
         def on_card_click():
             self.modal.show()
 
-        self.save()
+        self.show_warning_badge()
 
     @property
     def modal(self) -> Dialog:
@@ -89,10 +89,6 @@ class ClassSelector(BaseElement):
 
         meta = ProjectMeta.from_json(self.api.project.get_meta(self.project_id))
         self.classes_table = ClassesListSelector(meta.obj_classes)
-        names = [c.name for c in meta.obj_classes]
-        if len(names) == 0:
-            raise ValueError("No classes found in the project meta.")
-        self.classes_table.select(names[:1])  # Select the first class by default
         self.apply_button = Button("Apply")
         apply_button_box = Container([self.apply_button], style="align-items: flex-end")
 
@@ -121,7 +117,31 @@ class ClassSelector(BaseElement):
         selected_classes = self.classes_table.get_selected_classes()
         if not selected_classes:
             logger.error("No class selected, returning an empty string.")
+            self.show_warning_badge()
             return ""
         if len(selected_classes) > 1:
             logger.warning("Multiple classes selected, returning the first one.")
         return selected_classes[0].name
+
+    def show_warning_badge(self) -> None:
+        self._update_warning_badge(True)
+
+    def hide_warning_badge(self) -> None:
+        self._update_warning_badge(False)
+
+    def _update_warning_badge(self, enable: bool) -> None:
+        if not hasattr(self, "card"):
+            logger.error("Card is not defined for this element.")
+            return
+        if not isinstance(self.card, SolutionCard):
+            logger.error("Card is not an instance of SolutionCard.")
+            return
+
+        if enable:
+            self.card.update_badge_by_key(
+                key="No Class Selected",
+                label="⚠️",
+                plain=True,
+            )
+        else:
+            self.card.remove_badge_by_key("No Class Selected")

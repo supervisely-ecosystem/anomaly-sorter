@@ -2,15 +2,26 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from src.components.base_element import BaseElement
+from src.components.base_element import BaseActionElement
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
-from supervisely.app.widgets import SolutionCard, Icons
+from supervisely.app.widgets import (
+    Button,
+    Checkbox,
+    Container,
+    Dialog,
+    Empty,
+    Field,
+    Flexbox,
+    Icons,
+    SolutionCard,
+    Text,
+)
 from supervisely.sly_logger import logger
 from supervisely.solution.base_node import SolutionCardNode
 
 
-class RunNode(BaseElement):
+class RunNode(BaseActionElement):
     """
     This class represents a node in the solution graph that allows users to run custom filters on images.
     """
@@ -29,14 +40,65 @@ class RunNode(BaseElement):
         self.project_id = project_id
         self.card = self._create_card()
         self.node = SolutionCardNode(content=self.card, x=x, y=y)
+        self.modals = [self.modal]
 
+        @self.card.click
+        def on_card_click():
+            if self.card.is_disabled():
+                return
+            self.modal.show()
+
+    @property
+    def modal(self) -> SolutionCardNode:
+        if not hasattr(self, "_modal"):
+            self._modal = self._create_modal()
+        return self._modal
+
+    def _create_modal(self):
+        return Dialog(title="Apply Filters", size="tiny", content=self._create_modal_content())
+
+    def _create_modal_content(self):
+        # section for enabling/disabling auto-apply after stats update
+        label = Text("Enable Automation", font_size=13)
+        self.automation_checkbox = Checkbox(label)
+        automation_box = Flexbox(
+            widgets=[
+                Empty(style="width: 20px"),
+                self.automation_checkbox,
+            ],
+            vertical_alignment="center",
+        )
+        field = Field(
+            title="Automation",
+            description="Enable this option to automatically apply filters after statistics are updated.",
+            content=automation_box,
+        )
+
+        # run button
+        btn_container = Container([self.run_btn], style="align-items: flex-end")
+        return Container([field, btn_container])
+
+    @property
+    def run_btn(self) -> Button:
+        if not hasattr(self, "_run_btn"):
+            self._run_btn = self._create_run_button()
+        return self._run_btn
+
+    def _create_run_button(self):
+        return Button("Run", icon="zmdi zmdi-check")
+
+    @property
+    def auto_apply(self) -> bool:
+        if not hasattr(self, "automation_checkbox"):
+            return False
+        return self.automation_checkbox.is_checked()
 
     def _create_card(self):
         return SolutionCard(
-            title="Apply",
+            title="Apply Filters",
             tooltip=self._create_tooltip(),
-            width=150,
-            tooltip_position="left",
+            width=250,
+            tooltip_position="right",
             icon=Icons(class_name="zmdi zmdi-play", color="#7E1EDE", bg_color="#F3E5F5"),
         )
 

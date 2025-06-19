@@ -1,6 +1,6 @@
 from typing import Callable, Dict, List, Optional, Tuple
 
-from src.components.base_element import BaseElement
+from src.components.base_element import BaseActionElement
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import (
     Button,
@@ -18,10 +18,10 @@ from supervisely.app.widgets import (
     Widget,
 )
 from supervisely.sly_logger import logger
-from supervisely.solution.base_node import SolutionCardNode
+from supervisely.solution.base_node import SolutionCardNode, SolutionElement
 
 
-class CustomFilters(BaseElement):
+class CustomFilters(SolutionElement):
     """
     This class is a placeholder for the custom filters functionality.
     """
@@ -42,47 +42,37 @@ class CustomFilters(BaseElement):
         def on_card_click():
             self.modal.show()
 
-
     @property
     def modal(self) -> Dialog:
-        """
-        Returns a modal dialog for custom filters.
-        This method should be overridden in subclasses to provide specific filter options.
-        """
+        """Returns a modal dialog for custom filters."""
         if not hasattr(self, "_modal"):
             self._modal = self._create_modal()
         return self._modal
 
     def _create_card(self):
         return SolutionCard(
-            title="Custom Filters",
+            title="Filter & Sort Settings",
             tooltip=self._create_tooltip(),
             width=250,
-            tooltip_position="left",
+            tooltip_position="right",
             icon=Icons(
                 class_name="zmdi zmdi-filter-list",
-                color="#2196F3",
+                color="#1976D2",
                 bg_color="#E3F2FD",
             ),
         )
 
     def _create_tooltip(self):
         return SolutionCard.Tooltip(
-            description="This card allows you to specify custom filters for your images."
+            description="Configure filtering and sorting options for your images."
         )
 
     def _create_modal(self):
-        """
-        Create a modal dialog for custom filters.
-        This method should be overridden in subclasses to provide specific filter options.
-        """
+        """Create a modal dialog for custom filters."""
         return Dialog(title="Custom Filters", content=self._create_modal_content(), size="tiny")
 
     def _create_modal_content(self) -> Widget:
-        """
-        Create the content of the modal dialog.
-        This method should be overridden in subclasses to provide specific filter options.
-        """
+        """Create the content of the modal dialog."""
 
         # filter by number of labels
         min_num_label = Text("Number of Labels greater than:", font_size=13)
@@ -284,9 +274,24 @@ class CustomFilters(BaseElement):
             This method should be overridden in subclasses to apply specific filters.
             """
             filters = self._get_filters_from_widges()
+            keys_map = {
+                "min_num_labels": "Min Number of Labels",
+                "max_num_labels": "Max Number of Labels",
+                "min_area": "Min Area",
+                "sort_by": "Sort By",
+            }
+            for full_name in keys_map.values():
+                self.card.remove_property_by_key(full_name)
             if filters:
                 self.save()
                 self.modal.hide()
+
+                for key, full_name in keys_map.items():
+                    if key in filters:
+                        label = str(filters[key])
+                        if key == "sort_by":
+                            label = label.replace("_", " ").title()
+                        self.card.update_property(full_name, label, highlight=True)
 
         return content
 
