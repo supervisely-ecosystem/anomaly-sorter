@@ -461,4 +461,4 @@ class Statictics(SolutionElement):
                 plain=True,
             )
         else:
-            self.card.remove_badge_by_key("In Progress")
+            self.card.remove_badge_by_key("Finished")

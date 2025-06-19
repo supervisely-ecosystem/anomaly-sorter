@@ -1,7 +1,6 @@
 import src.nodes as n
 import src.sly_globals as g
 import supervisely as sly
-from supervisely.app.content import DataJson
 
 app = sly.Application(layout=n.layout)
 # app.call_before_shutdown(g.scheduler.shutdown)  # ? it seems like this is not working
@@ -54,3 +53,6 @@ def on_accept_node_run_click():
     """
     n.accept_node.run(g.collection_id)
     sly.logger.info("Accepted anomalies tagged successfully.")
+
+# * Restore data and state if available
+sly.app.restore_data_state_if_restart()
