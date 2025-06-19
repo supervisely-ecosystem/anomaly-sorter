@@ -62,8 +62,15 @@ These tags are managed through user actions and workflow decisions:
 | Tag Name    | Description                               | Control                             |
 | ----------- | ----------------------------------------- | ----------------------------------- |
 | `_accepted` | Indicates accepted anomalies in the image | 🤖 Auto-applied based on boundaries |
-
 | `_accepted_boundary` | Temporary markers for defining acceptance range. Cleaned up after processing | 👤 User-applied manually |
+
+
+## Workflow
+
+The Anomaly Sorter application follows a structured workflow to efficiently analyze and manage anomalies in images. The workflow consists of several key steps, each represented as nodes in the application interface.
+
+![Anomaly Sorter Workflow](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/workflow.jpg)
+
 
 ## How To Run
 
@@ -119,9 +126,3 @@ After selecting a class, the application will automatically enable the "Calculat
 - All images between boundaries will be automatically tagged as `_accepted`
 
 > **Note**: Only 1 range of accepted anomalies can be tagged at a time. If you need to tag multiple ranges, you can repeat the process by assigning new `_accepted_boundary` tags.
-
-## Workflow
-
-The Anomaly Sorter application follows a structured workflow to efficiently analyze and manage anomalies in images. The workflow consists of several key steps, each represented as nodes in the application interface.
-
-![Anomaly Sorter Workflow](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/workflow.jpg)
