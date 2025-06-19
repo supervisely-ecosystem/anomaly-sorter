@@ -1,56 +1,127 @@
-<!-- _This section is about how to use the repo template,
-FIXME: it should be removed from README.md after the app is ready to be released._<br>
-
-### How to use the repo template
-
-1. Clone the repo locally.
-2. Use the `create_venv.sh` script to create a virtual environment and install all required packages.
-3. Fill required fields in the `local.env` file (your IDs: team, workspace, etc.).
-4. Code in `src/*.py` files are ready-to-use examples of how to use Supervisely Python SDK.
-You can use them as a reference or replace with your own code.
-7. After implementing all required code and UI, fill in `config.json` file. If needed edit `dev_requirements.txt` file.
-8. The repo is ready now.
-
---- -->
-
 <div align="center" markdown>
 
-<img src="poster placeholder"/>
+# Anomaly Sorter
 
-# Placeholder for app short description
+**Advanced anomaly sorting based on custom statistics and intelligent filtering.**
 
 <p align="center">
   <a href="#Overview">Overview</a> •
-  <a href="#Preparation">Preparation</a> •
-  <a href="#How-To-Run">How To Run</a>
+  <a href="#Features">Features</a> •
+  <a href="#Statistics-and-Tags">Statistics & Tags</a> •
+  <a href="#How-To-Run">How To Run</a> •
+  <a href="#Workflow">Workflow</a> •
+  <a href="#Technical-Details">Technical Details</a>
 </p>
 
-<!-- FIXME: Change the app slug in the links below (for badges and links)
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/PLACEHOLDER-FOR-APP-PATH)
-[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/PLACEHOLDER-FOR-APP-PATH)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/PLACEHOLDER-FOR-APP-PATH.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/PLACEHOLDER-FOR-APP-PATH.png)](https://supervise.ly) -->
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/anomaly-sorter)
+[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/anomaly-sorter)
+[![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/anomaly-sorter.png)](https://supervisely.com)
+[![runs](https://app.supervisely.com/img/badges/runs/supervisely-ecosystem/anomaly-sorter.png)](https://supervisely.com)
 
 </div>
 
 ## Overview
 
-Section for app overview. Describe what the app does, what are the benefits of using it, key features, and what is the expected output, etc.
+The Anomaly Sorter is a Supervisely application built on the Supervisely "Solution" engine that provides an intelligent workflow for analyzing, and managing anomalies in the project or dataset. It automatically calculates statistical metrics and enables users to filter, sort, and tag anomalous images based on customizable criteria.
 
-## Preparation
+![Anomaly Sorter in Action](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/gui.jpg)
 
-Section for app preparation. Describe what the user should do before running the app. For example, upload images to the team storage, create a project, etc.
+### Key Benefits
+
+- **Automated Statistics**: Calculates comprehensive metrics for all images automatically. All statistics can be accessed as tags in the project.
+- **Filter & Sort**: Customizable filtering and sorting options for targeted analysis
+- **Efficient Tagging**: Batch tagging system for accepted anomalies
+- **Interactive Workflow**: Node-based visual interface for easyly managing the analysis process
+
+## Statistics and Tags
+
+### Automatically Calculated Statistics
+
+The application automatically generates and updates several key statistics for each image andbased on the objects. These statistics are stored as tags associated with the images.
+
+> **Note**: Do not manually modify these tags as they are used for background statistics calculation. They are automatically generated and updated by the application.
+
+These statistics are calculated and applied automatically in background processing:
+
+| Tag Name              | Description                                                 | Type   | Control            |
+| --------------------- | ----------------------------------------------------------- | ------ | ------------------ |
+| `_max_area`           | Maximum area of any object in the image                     | Number | 🤖 Auto-calculated |
+| `_total_area`         | Sum of all object areas in the image                        | Number | 🤖 Auto-calculated |
+| `_labels`             | Total number of objects/labels in the image                 | Number | 🤖 Auto-calculated |
+| `_avg_intensity_diff` | Average intensity difference between objects and background | Float  | 🤖 Auto-calculated |
+| `_min_intensity_diff` | Minimum intensity difference between objects and background | Float  | 🤖 Auto-calculated |
+| `_max_intensity_diff` | Maximum intensity difference between objects and background | Float  | 🤖 Auto-calculated |
+
+### User-Controlled Tags
+
+> **Important**: Users should only assign `_accepted_boundary` tags manually to mark start/end points. The `_accepted` tags are automatically applied by the system based on these boundaries.
+
+These tags are managed through user actions and workflow decisions:
+
+| Tag Name    | Description                               | Control                             |
+| ----------- | ----------------------------------------- | ----------------------------------- |
+| `_accepted` | Indicates accepted anomalies in the image | 🤖 Auto-applied based on boundaries |
+
+| `_accepted_boundary` | Temporary markers for defining acceptance range. Cleaned up after processing | 👤 User-applied manually |
 
 ## How To Run
 
-Section for the app running. Describe how to run the app step by step.
+### Prerequisites
 
-**Step 1:** Describe actions in step.<br><br>
+- Supervisely project or dataset with labeled images
 
-**Step 2:** Describe actions in step.<br><br>
+### Step-by-Step Guide
 
-<!-- use pictures or gifs to make it clear
-<img src="placeholder for screenshot"/><br><br> -->
+**Step 1: Launch the Application**
 
-After finishing using the app, don't forget to stop the app session manually in the App Sessions.
+- Option 1: Find "Anomaly Sorter" in the Supervisely Ecosystem and run it on your project
+- Option 2: Navigate to your project (or dataset) in Supervisely and run the application from the context menu
+
+**Step 2: Select Target Class**
+
+- Click on the "Class Selection" node
+- Choose the object class you want to analyze for anomalies
+- Click "Apply" to confirm your selection
+
+After selecting a class, the application will automatically enable the "Calculate Statistics" node, which will start processing the images in the project. If you change the class, the statistics will be recalculated for the new selection in the next automatic run. If you want to recalculate statistics immediately, you can click the "Run Manually" button in the tooltip of the "Calculate Statistics" node.
+
+**Step 3: Calculate Statistics**
+
+- The "Calculate Statistics" node will automatically start processing
+- Wait for completion (progress is shown in the tooltip)
+- Statistics are calculated for all images with the selected class in the project (or dataset)
+
+**Step 4: Configure Filters**
+
+- Click on "Custom Filters" to open filter configuration
+- Set your criteria:
+  - **Number of Labels**: Min/max object count per image
+  - **Area Filter**: Minimum area threshold for objects
+  - **Sort By**: Choose sorting method (count, area, intensity)
+- Click "Save" to apply filters
+
+**Step 5: Apply Filters and Review**
+
+- Click the "Apply" node to run filtering
+- Navigate to the filtered results using the "Navigate to Filtered Images" link
+- Review the sorted anomalies in order of severity
+
+**Step 6: Tag Accepted Anomalies**
+
+- In the filtered image view, manually add `_accepted_boundary` tags to:
+  - **Start image**: First image in acceptable anomaly range
+  - **End image**: Last image in acceptable anomaly range
+- Return to the application choose the mode to accept anomalies in the modal dialog:
+  - **Keep previous tags**: Retain existing `_accepted` tags
+  - **Remove previous tags**: Clear existing `_accepted` tags before applying new ones
+- Click "Run" to process the boundaries
+- All images between boundaries will be automatically tagged as `_accepted`
+
+> **Note**: Only 1 range of accepted anomalies can be tagged at a time. If you need to tag multiple ranges, you can repeat the process by assigning new `_accepted_boundary` tags.
+
+## Workflow
+
+The Anomaly Sorter application follows a structured workflow to efficiently analyze and manage anomalies in images. The workflow consists of several key steps, each represented as nodes in the application interface.
+
+![Anomaly Sorter Workflow](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/workflow.jpg)
