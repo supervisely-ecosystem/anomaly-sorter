@@ -1,5 +1,8 @@
 <div align="center" markdown>
 
+<img src="https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/poster.jpg">
+
+
 # Anomaly Sorter
 
 **Advanced anomaly sorting based on custom statistics and intelligent filtering.**
@@ -69,7 +72,7 @@ These tags are managed through user actions and workflow decisions:
 
 The Anomaly Sorter application follows a structured workflow to efficiently analyze and manage anomalies in images. The workflow consists of several key steps, each represented as nodes in the application interface.
 
-![Anomaly Sorter Workflow](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/workflow.jpg)
+![Anomaly Sorter Workflow](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/schema.jpg)
 
 
 ## How To Run

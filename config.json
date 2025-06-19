@@ -6,6 +6,8 @@
   "docker_image": "supervisely/base-py-sdk:6.73.380",
   "categories": ["images"],
   "headless": false,
+  "poster": "https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/poster.jpg",
+  "icon": "https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/icon.jpg",
   "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
   "port": 8000,
   "context_menu": {
