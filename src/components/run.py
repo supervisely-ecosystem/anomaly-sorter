@@ -198,12 +198,12 @@ class RunNode(BaseActionElement):
 
         if min_num_objects > 0 or max_num_objects < float("inf"):
             if min_num_objects < max_num_objects:
-                num_labels_filter = (num_labels >= min_num_objects) & (
-                    num_labels <= max_num_objects
+                num_labels_filter = (num_labels > min_num_objects) & (
+                    num_labels < max_num_objects
                 )
             else:
-                num_labels_filter = (num_labels >= min_num_objects) | (
-                    num_labels <= max_num_objects
+                num_labels_filter = (num_labels > min_num_objects) | (
+                    num_labels < max_num_objects
                 )
             if np.any(num_labels_filter):
                 num_labels_indices = np.where(num_labels_filter)[0]

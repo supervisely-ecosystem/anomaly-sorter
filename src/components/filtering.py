@@ -121,6 +121,7 @@ class CustomFilters(SolutionElement):
 
         # filter by area (e.g. total area on image should be greater than some value)
         min_area_label = Text("Has Labels with Area greater than:", font_size=13)
+        px_label = Text("px", font_size=13)
         self.min_area_check = Checkbox(min_area_label)
         self.min_area_input = InputNumber(min=0, step=1, size="mini", controls=False, width=100)
         self.min_area_input.disable()
@@ -135,6 +136,7 @@ class CustomFilters(SolutionElement):
                 Empty(style="width: 20px"),
                 self.min_area_check,
                 self.min_area_input,
+                px_label,
             ],
             vertical_alignment="center",
         )
@@ -221,7 +223,16 @@ class CustomFilters(SolutionElement):
         # # sort options:
         self.sort_by_label = Text("Sort by:", font_size=13)
         self.sort_by = RadioGroup(
-            items=self._create_sort_options(num_labels=True), size="mini", direction="vertical"
+            items=self._create_sort_options(
+                num_labels=True,
+                total_area=True,
+                max_area=True,
+                avg_intensity_diff=True,
+                max_intensity_diff=True,
+                min_intensity_diff=True,
+            ),
+            size="mini",
+            direction="vertical",
         )
         sort_options_box = Flexbox(
             widgets=[
