@@ -25,13 +25,13 @@
 
 ## Overview
 
-The Anomaly Sorter is a Supervisely application built on the Supervisely "Solution" engine that provides an intelligent workflow for analyzing, and managing anomalies in the project or dataset. It automatically calculates statistical metrics and enables users to filter, sort, and tag anomalous images based on customizable criteria.
+Anomaly Sorter is a Supervisely application built on the Supervisely "Solution" engine that streamlines the process of reviewing large sets of labeled images. It automatically calculates statistical metrics for each image, provides flexible filtering and sorting options, and allows users to select a specific range of images based on these criteria. With a single action, all images in the chosen range can be tagged with a technical label, making it easy to quickly mark and set aside groups of images that are unlikely to require further manual review. This approach significantly accelerates the overall image review workflow.
 
 ![Anomaly Sorter in Action](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/gui.jpg)
 
 ### Key Benefits
 
-- **Automated Statistics**: Calculates comprehensive metrics for all images automatically. All statistics can be accessed as tags in the project.
+- **Automated Statistics**: Calculates metrics for all images automatically. All statistics can be accessed as tags in the project.
 - **Filter & Sort**: Customizable filtering and sorting options for targeted analysis
 - **Efficient Tagging**: Batch tagging system for accepted anomalies
 - **Interactive Workflow**: Node-based visual interface for easyly managing the analysis process
