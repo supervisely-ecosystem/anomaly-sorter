@@ -103,13 +103,7 @@ class AcceptAnomaliesNode(BaseActionElement):
         return self._run_btn
 
     def _create_run_button(self):
-        btn = Button(
-            "Run",
-            icon="zmdi zmdi-play",
-            button_size="mini",
-            plain=True,
-            button_type="text",
-        )
+        btn = Button("Run", icon="zmdi zmdi-play")
 
         return btn
 

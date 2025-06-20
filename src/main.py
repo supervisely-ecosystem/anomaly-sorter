@@ -32,6 +32,7 @@ def on_run_node_click():
 
 
 def _on_run_node_click():
+    n.run_node.hide_is_finished_badge()
     g.collection_id = n.run_node.run(filters=n.filters_node.filters, stats=n.stats_node.stats)
     if g.collection_id is None:
         msg = "No images found after applying filters. Please adjust your filters and try again."
@@ -43,6 +44,7 @@ def _on_run_node_click():
     sly.logger.info(f"Link to filtered images: {link}")
     n.navigate.card.link = link
     n.accept_node.hide_is_finished_badge()
+    n.run_node.show_is_finished_badge()
 
 
 @n.stats_node.on_stats_calculated

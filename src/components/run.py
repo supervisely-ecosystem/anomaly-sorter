@@ -63,7 +63,7 @@ class RunNode(BaseActionElement):
         self.automation_checkbox = Checkbox(label)
         automation_box = Flexbox(
             widgets=[
-                Empty(style="width: 20px"),
+                # Empty(style="width: 20px"),
                 self.automation_checkbox,
             ],
             vertical_alignment="center",
