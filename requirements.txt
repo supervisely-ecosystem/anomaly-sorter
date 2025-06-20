@@ -1,3 +1,0 @@
-git+https://github.com/supervisely/supervisely.git@autorestart
-apscheduler==3.11.0
-black
