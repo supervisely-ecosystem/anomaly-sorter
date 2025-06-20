@@ -61,9 +61,9 @@ def on_accept_node_run_click():
 
 
 # * Restore data and state if available
-sly.app.restore_data_state_if_restart()
+sly.app.restore_data_state(g.task_id)
 
-# * Some restoration logic (!AFTER restore_data_state_if_restart)
+# * Some restoration logic (!AFTER restore_data_state)
 if n.class_selector.selected_class:
     n.class_selector.hide_warning_badge()
     n.check_every_node.show_automation_details()

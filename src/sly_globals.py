@@ -11,6 +11,7 @@ if sly.is_development():
 
 api = sly.Api.from_env()
 team_id = sly.env.team_id()
+task_id = sly.env.task_id(raise_not_found=False)
 project_id = sly.env.project_id()
 dataset_id = sly.env.dataset_id(raise_not_found=False)
 

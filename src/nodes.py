@@ -21,6 +21,7 @@ input_project = sly.solution.ProjectNode(
     description="Centralizes all incoming data. Data in this project will not be modified.",
     dataset_id=g.dataset_id,
     widget_id="input_project_widget",
+    refresh_interval=300, # 5 min
 )
 
 check_every_node = InfoCheckEvery(x=BASE_X, y=BASE_Y + 220)
