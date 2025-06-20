@@ -237,7 +237,7 @@ class CustomFilters(SolutionElement):
         sort_options_box = Flexbox(
             widgets=[
                 Empty(style="width: 20px"),
-                self.sort_by_label,
+                # self.sort_by_label,
                 self.sort_by,
             ],
             vertical_alignment="start",
@@ -262,7 +262,7 @@ class CustomFilters(SolutionElement):
         # )
         self.sort_options_field = Field(
             Container([sort_options_box]),
-            "Sort Options",
+            "Sort by",
         )
 
         self.apply_button = Button("Save", icon="zmdi zmdi-check")
