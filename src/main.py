@@ -33,6 +33,7 @@ def on_run_node_click():
 
 def _on_run_node_click():
     n.run_node.hide_is_finished_badge()
+    n.class_selector.card.disable()
     g.collection_id = n.run_node.run(filters=n.filters_node.filters, stats=n.stats_node.stats)
     if g.collection_id is None:
         msg = "No images found after applying filters. Please adjust your filters and try again."
@@ -47,11 +48,12 @@ def _on_run_node_click():
     n.run_node.show_is_finished_badge()
 
 
-# @n.stats_node.on_stats_calculated
-# def on_stats_calculated():
-#     n.run_node.card.enable()
-#     if n.run_node.auto_apply:
-#         _on_run_node_click()
+@n.stats_node.on_stats_calculated
+def on_stats_calculated():
+    n.run_node.card.enable()
+    n.class_selector.card.enable()
+    # if n.run_node.auto_apply:
+    #     _on_run_node_click()
 
 
 # * Accept Node: tags accepted anomalies using user-defined bounderies
