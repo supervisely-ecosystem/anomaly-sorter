@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "name": "Anomaly-Sorter",
   "description": "Application based on Supervisely Solution engine for sorting all possible anomalies and automatically tagging only accepted anomalies.",
-  "docker_image": "supervisely/anomaly-sorter:0.0.1",
+  "docker_image": "supervisely/anomaly-sorter:0.0.2",
   "instance_version": "6.12.46",
   "categories": ["images"],
   "headless": false,
