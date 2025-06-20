@@ -2,7 +2,6 @@
 
 <img src="https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/poster.jpg">
 
-
 # Anomaly Sorter
 
 **Advanced anomaly sorting based on custom statistics and intelligent filtering.**
@@ -62,18 +61,16 @@ These statistics are calculated and applied automatically in background processi
 
 These tags are managed through user actions and workflow decisions:
 
-| Tag Name    | Description                               | Control                             |
-| ----------- | ----------------------------------------- | ----------------------------------- |
-| `_accepted` | Indicates accepted anomalies in the image | 🤖 Auto-applied based on boundaries |
-| `_accepted_boundary` | Temporary markers for defining acceptance range. Cleaned up after processing | 👤 User-applied manually |
-
+| Tag Name             | Description                                                                  | Control                             |
+| -------------------- | ---------------------------------------------------------------------------- | ----------------------------------- |
+| `_accepted`          | Indicates accepted anomalies in the image                                    | 🤖 Auto-applied based on boundaries |
+| `_accepted_boundary` | Temporary markers for defining acceptance range. Cleaned up after processing | 👤 User-applied manually            |
 
 ## Workflow
 
 The Anomaly Sorter application follows a structured workflow to efficiently analyze and manage anomalies in images. The workflow consists of several key steps, each represented as nodes in the application interface.
 
 ![Anomaly Sorter Workflow](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/schema.jpg)
-
 
 ## How To Run
 
@@ -117,15 +114,37 @@ After selecting a class, the application will automatically enable the "Calculat
 - Navigate to the filtered results using the "Navigate to Filtered Images" link
 - Review the sorted anomalies in order of severity
 
-**Step 6: Tag Accepted Anomalies**
+**Step 6: Define the Range of Images to Accept**
 
 - In the filtered image view, manually add `_accepted_boundary` tags to:
   - **Start image**: First image in acceptable anomaly range
   - **End image**: Last image in acceptable anomaly range
+
+> **Note**: Only 1 range of accepted anomalies can be tagged at a time. If you need to tag multiple ranges, you can repeat the process by assigning new `_accepted_boundary` tags.
+
+
+![Add Boundary Tags](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/boundary_tag.jpg)
+
+
+**Step 7: Tag Accepted Anomalies**
 - Return to the application choose the mode to accept anomalies in the modal dialog:
   - **Keep previous tags**: Retain existing `_accepted` tags
   - **Remove previous tags**: Clear existing `_accepted` tags before applying new ones
 - Click "Run" to process the boundaries
 - All images between boundaries will be automatically tagged as `_accepted`
 
-> **Note**: Only 1 range of accepted anomalies can be tagged at a time. If you need to tag multiple ranges, you can repeat the process by assigning new `_accepted_boundary` tags.
+
+**Step 8 (optional): Access Accepted Images**
+
+Once the accepted range is processed, you can easily access all images tagged with `_accepted` by applying a tag filtering on the project page. Here's how to do it:
+
+1. Go to your project page in Supervisely and click on the "Filters" button.
+   ![Navigate to the project](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/filtering1.jpg)
+2. In the filter options, select "Images Tag", choose `_accepted` from the list and click "Apply" to filter the images. All images tagged with `_accepted` will be displayed.
+   ![Apply filters](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/filtering2.jpg)
+3. You can then click "Annotate" to open these images in the annotation tool for further review or editing. You can also copy these images to another project or create a Quality Control task based on them.
+   ![Select task for filtered images](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/filtering3.jpg)
+
+4. Alternatively, you can filter images directly in the Image Labeling Toolbox by selecting the `_accepted` tag from the tags list. This allows you to quickly access and review all accepted anomalies within the annotation interface.
+
+![Filter Images in Labeling Toolbox](https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/filtering4.jpg)

@@ -42,11 +42,11 @@ class RunNode(BaseActionElement):
         self.node = SolutionCardNode(content=self.card, x=x, y=y)
         self.modals = [self.modal]
 
-        @self.card.click
-        def on_card_click():
-            if self.card.is_disabled():
-                return
-            self.modal.show()
+        # @self.card.click
+        # def on_card_click():
+        #     if self.card.is_disabled():
+        #         return
+        #     self.modal.show()
 
     @property
     def modal(self) -> SolutionCardNode:
@@ -119,7 +119,7 @@ class RunNode(BaseActionElement):
         if not filtered_ids:
             logger.warning("No images found after applying filters.")
             return
-
+        filtered_ids = list(set(filtered_ids))  # Ensure unique IDs
         images_count = len(filtered_ids)
         logger.debug(f"Found {images_count} images after applying filters.")
 

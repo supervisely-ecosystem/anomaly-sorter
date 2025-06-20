@@ -161,13 +161,15 @@ class AcceptAnomaliesNode(BaseActionElement):
             logger.info(f"Tagging images from index {start} to {end} as accepted anomalies.")
             for i in range(start, end + 1):
                 img = sorted_images[i]
-                tags_json.append({"tagId": tag_accepted.sly_id, "entityId": img.id})
+                if not self._has_tag(img, tag_accepted):
+                    tags_json.append({"tagId": tag_accepted.sly_id, "entityId": img.id})
             success = True
         else:
-            logger.warning("No start and end images found for tagging accepted anomalies.")
+            msg = "No valid start and end images found for tagging accepted anomalies."
+            logger.warning(msg)
             show_dialog(
                 title="Warning",
-                description="No start and end images found for tagging accepted anomalies.",
+                description=msg,
                 status="warning",
             )
 
