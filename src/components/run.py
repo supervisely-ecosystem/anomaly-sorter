@@ -230,25 +230,26 @@ class RunNode(BaseActionElement):
             logger.warning("No images found after applying filters.")
             return None
 
-        if sort_by == "_labels":
-            sorted_indices = np.argsort(num_labels[list(intersections)])
-        elif sort_by == "_max_area":
-            sorted_indices = np.argsort(max_area_stats[list(intersections)])
-        elif sort_by == "_total_area":
-            sorted_indices = np.argsort(total_area[list(intersections)])
-        elif sort_by == "_avg_intensity_diff":
-            sorted_indices = np.argsort(avg_intensity_diff[list(intersections)])
-        elif sort_by == "_min_intensity_diff":
-            sorted_indices = np.argsort(min_intensity_diff[list(intersections)])
-        elif sort_by == "_max_intensity_diff":
-            sorted_indices = np.argsort(max_intensity_diff[list(intersections)])
-        else:
-            sorted_indices = np.arange(len(intersections))
+        intersection_indices = sorted(list(intersections))
 
-        filtered_image_ids = image_ids[list(intersections)][sorted_indices].tolist()
-        if not filtered_image_ids:
-            logger.warning("No images found after applying filters.")
-            return None
+        if sort_by == "_labels":
+            sorted_indices = np.argsort(num_labels[intersection_indices])
+        elif sort_by == "_max_area":
+            sorted_indices = np.argsort(max_area_stats[intersection_indices])
+        elif sort_by == "_total_area":
+            sorted_indices = np.argsort(total_area[intersection_indices])
+        elif sort_by == "_avg_intensity_diff":
+            sorted_indices = np.argsort(avg_intensity_diff[intersection_indices])
+        elif sort_by == "_min_intensity_diff":
+            sorted_indices = np.argsort(min_intensity_diff[intersection_indices])
+        elif sort_by == "_max_intensity_diff":
+            sorted_indices = np.argsort(max_intensity_diff[intersection_indices])
+        else:
+            sorted_indices = np.arange(len(intersection_indices))
+
+        # Apply sorting to the intersection indices, then get image IDs
+        final_indices = np.array(intersection_indices)[sorted_indices]
+        filtered_image_ids = image_ids[final_indices].tolist()
 
         return filtered_image_ids
 
