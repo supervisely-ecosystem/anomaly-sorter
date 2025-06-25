@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from src.components.base_element import BaseActionElement
+from supervisely._utils import batched
 from supervisely.api.api import Api
 from supervisely.app.content import DataJson
 from supervisely.app.widgets import (
@@ -136,7 +137,9 @@ class RunNode(BaseActionElement):
         max_prefix = len(str(len(filtered_ids)))
         sort_values = [f"{str(i + 1).zfill(max_prefix)}" for i in range(len(filtered_ids))]
 
-        self.api.image.set_custom_sort_bulk(filtered_ids, sort_values)
+        for batch_ids, batch_values in zip(batched(filtered_ids, 500), batched(sort_values, 500)):
+            self.api.image.set_custom_sort_bulk(batch_ids, batch_values)
+
         logger.debug("Custom sort values set for filtered images.")
 
         if "filtered" not in DataJson():
@@ -198,13 +201,9 @@ class RunNode(BaseActionElement):
 
         if min_num_objects > 0 or max_num_objects < float("inf"):
             if min_num_objects < max_num_objects:
-                num_labels_filter = (num_labels > min_num_objects) & (
-                    num_labels < max_num_objects
-                )
+                num_labels_filter = (num_labels > min_num_objects) & (num_labels < max_num_objects)
             else:
-                num_labels_filter = (num_labels > min_num_objects) | (
-                    num_labels < max_num_objects
-                )
+                num_labels_filter = (num_labels > min_num_objects) | (num_labels < max_num_objects)
             if np.any(num_labels_filter):
                 num_labels_indices = np.where(num_labels_filter)[0]
                 sets.append(set(num_labels_indices))
