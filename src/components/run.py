@@ -263,4 +263,5 @@ class RunNode(BaseActionElement):
         from supervisely._utils import abs_url
 
         path = f"/app/images2/?projectId={project_id}&entitiesFilter=%5B%7B%22type%22%3A%22entities_collection%22,%22data%22%3A%7B%22collectionId%22%3A{collection_id},%22include%22%3Atrue%7D%7D%5D"
-        return abs_url(path)
+        # return abs_url(path)
+        return path

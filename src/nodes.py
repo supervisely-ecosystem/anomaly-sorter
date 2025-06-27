@@ -43,7 +43,8 @@ navigate = sly.solution.LinkNode(
     y=BASE_Y + 620,
     title="Navigate to Filtered Images",
     description="Click to navigate to the filtered images in the Images Labeling Toolbox. Images will be filtered based on Entities Collection created in the previous step.",
-    link=sly.utils.abs_url(f"/app/images2/?projectId={g.project_id}"),
+    # link=sly.utils.abs_url(f"/app/images2/?projectId={g.project_id}"),
+    link=f"/app/images2/?projectId={g.project_id}",
     icon=sly.app.widgets.Icons(
         class_name="zmdi zmdi-open-in-new", color="#2196F3", bg_color="#E3F2FD"
     ),
