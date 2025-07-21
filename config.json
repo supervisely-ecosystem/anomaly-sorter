@@ -9,9 +9,11 @@
   "headless": false,
   "poster": "https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/poster.jpg",
   "icon": "https://github.com/supervisely-ecosystem/anomaly-sorter/releases/download/v0.1.0/icon.jpg",
+  "icon_cover": true,
   "entrypoint": "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000",
   "port": 8000,
   "context_menu": {
     "target": ["images_project", "images_dataset"]
-  }
+  },
+  "restart_policy": "on_error"
 }
