@@ -3,7 +3,7 @@ import src.sly_globals as g
 import supervisely as sly
 
 app = sly.Application(layout=n.layout)
-# app.call_before_shutdown(g.scheduler.shutdown)  # ? it seems like this is not working
+app.call_before_shutdown(n.stats_node.automation.scheduler.shutdown)  # ? check this
 
 
 # * Class Selector Node: allows user to select a class for filtering
