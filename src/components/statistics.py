@@ -270,8 +270,9 @@ class Statictics(BaseActionElement):
                     for img, ann, info in zip(img_np, anns, img_infos):
                         exists = info.id in img_idx_map
                         img_stats = self._calculate_image_statistics(img, ann, target_class)
-                        DataJson()[self.widget_id]["image_ids"].append(info.id)
-                        # DataJson().send_changes()
+                        if not exists:
+                            DataJson()[self.widget_id]["image_ids"].append(info.id)
+                            # DataJson().send_changes()
                         now = datetime.now(timezone.utc)
                         last_updated_map[info.id] = now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
